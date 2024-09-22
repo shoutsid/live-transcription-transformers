@@ -74,6 +74,7 @@ python live_transcription.py [OPTIONS]
 | `--device DEVICE`               | Select the audio input device by ID or name substring. Use `--list_devices` to view available options.                                                                 | `None` (default device)   |
 | `--list_devices`                | Display all available audio input devices and exit.                                                                                                                | `False`                   |
 | `--target_samplerate RATE`      | Specify the target sampling rate for transcription. `16000` Hz is recommended for optimal compatibility with Whisper models.                                         | `16000`                   |
+| `--enable_diarization`      |  Speaker diarization to identify multiple speakers during transcription. Uses [PyAnnote/speaker-diarization-3.1](https://huggingface.co/collinbarnwell/pyannote-speaker-diarization-31)                                         | `None`                   |
 
 ### 📚 Examples
 
@@ -115,15 +116,23 @@ python live_transcription.py [OPTIONS]
    
    ```bash
    python live_transcription.py --debug_audio_dir ./debug_audio
-   ```
 
-6. **Collect Training Data with Audio-Transcription Mapping**:
-   
-   Save audio files for training and maintain a mapping in `mappings.jsonl`.
-   
-   ```bash
-   python live_transcription.py --training_data_dir ./training_audio --mapping_file ./mappings.jsonl
-   ```
+  6. **Collect Training Data with Audio-Transcription Mapping**:
+     
+     Save audio files for training and maintain a mapping in `mappings.jsonl`.
+     
+     ```bash
+     python live_transcription.py --training_data_dir ./training_audio --mapping_file ./mappings.jsonl
+     ```
+
+  7. **Enable Speaker Diarization**:
+
+     Identify multiple speakers during transcription using the `--enable_diarization` option.
+     
+     ```bash
+     python live_transcription.py --enable_diarization
+     ```
+
 
 ## 📌 Notes
 
