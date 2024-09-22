@@ -329,7 +329,7 @@ def parse_arguments():
     parser.add_argument(
         '--model_id',
         type=str,
-        default='openai/whisper-large-v4',
+        default='openai/whisper-large-v3',
         help='Hugging Face model ID to use for transcription.'
     )
     parser.add_argument(
