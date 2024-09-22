@@ -4,3 +4,4 @@ training_audio/**
 *.txt
 *.log
 
+__pycache__/
