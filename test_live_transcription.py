@@ -10,6 +10,7 @@ from live_transcription import (
     transcribe_live,
     list_audio_devices,
     select_audio_device,
+    callback
 )
 
 @pytest.fixture
@@ -194,3 +195,93 @@ async def test_transcribe_live_handles_keyboard_interrupt(mock_pipeline, mock_di
                 target_samplerate=16000,
                 enable_diarization=True
             )
+
+
+@pytest.mark.asyncio
+@patch("live_transcription.Pipeline.from_pretrained")
+@patch("live_transcription.pipeline")
+async def test_transcribe_live_without_diarization(mock_pipeline, mock_diarization_pipeline, setup_environment):
+    mock_pipe = MagicMock()
+    mock_pipe.return_value = {"text": "Test without diarization"}
+    mock_pipeline.return_value = mock_pipe
+
+    await transcribe_live(
+        model_id="openai/whisper-tiny",
+        verbose=True,
+        log_file=None,
+        output_file="test_output_no_diarization.txt",
+        debug_audio_dir=None,
+        training_data_dir=None,
+        mapping_file=None,
+        samplerate=16000,
+        block_duration=0.5,
+        threshold=0.01,
+        max_silence_duration=2.0,
+        device=None,
+        target_samplerate=16000,
+        enable_diarization=False
+    )
+
+    assert os.path.exists("test_output_no_diarization.txt")
+    with open("test_output_no_diarization.txt", "r") as f:
+        content = f.read()
+    assert "Test without diarization" in content
+    os.remove("test_output_no_diarization.txt")
+
+def test_save_audio_chunk_mono_audio():
+    filename = "test_audio_chunk_mono.wav"
+    audio_data = np.random.rand(16000) * 2 - 1  # Mono audio chunk
+    save_audio_chunk(filename, audio_data, 16000)
+    assert os.path.exists(filename)
+    os.remove(filename)
+
+def test_save_audio_chunk_different_samplerate():
+    filename = "test_audio_chunk_different_rate.wav"
+    audio_data = np.random.rand(16000, 2) * 2 - 1
+    save_audio_chunk(filename, audio_data, 44100)  # Non-standard samplerate
+    assert os.path.exists(filename)
+    os.remove(filename)
+
+@patch("live_transcription.sd.query_devices")
+def test_list_audio_devices_all_zero_input_channels(mock_query_devices):
+    mock_query_devices.return_value = [
+        {"name": "Device 1", "max_input_channels": 0, "hostapi": 0},
+        {"name": "Device 2", "max_input_channels": 0, "hostapi": 1},
+    ]
+    list_audio_devices()
+    # This test doesn't assert since we're mainly ensuring it runs without crashing
+
+@pytest.mark.asyncio
+@patch("live_transcription.pipeline")
+async def test_process_live_chunk_without_diarization_pipeline(mock_pipeline, audio_data):
+    mock_pipe = MagicMock()
+    mock_pipe.return_value = {"text": "Transcription without diarization"}
+    mock_pipeline.return_value = mock_pipe
+
+    transcription = []
+    await process_live_chunk(
+        mock_pipe,
+        None,  # No diarization pipeline
+        audio_data,
+        transcription,
+        None,
+        None,
+        None,
+        16000,
+        16000,
+        {},
+        [1]
+    )
+
+    assert len(transcription) > 0
+    assert "Transcription without diarization" in transcription[0]
+
+@patch("live_transcription.asyncio.run_coroutine_threadsafe")
+def test_audio_callback_with_status(mock_run_coroutine_threadsafe, audio_data):
+    # Mock parameters
+    status = MagicMock()
+    queue = MagicMock()
+    loop = MagicMock()
+
+    callback(audio_data, 16000, None, status, queue, loop, 16000, 16000)
+    mock_run_coroutine_threadsafe.assert_called_once()
