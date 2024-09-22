@@ -1,0 +1,6 @@
+debug_audio/**
+training_audio/**
+*.jsonl
+*.txt
+*.log
+
