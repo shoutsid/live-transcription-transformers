@@ -1,0 +1,7 @@
+transformers  
+torch
+numpy
+scipy
+sounddevice
+pyannote.audio 
+pytest

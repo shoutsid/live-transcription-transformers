@@ -2,6 +2,7 @@ debug_audio/**
 training_audio/**
 *.jsonl
 *.txt
+!requirements.txt
 *.log
 
 __pycache__/
